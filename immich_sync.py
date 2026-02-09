@@ -428,6 +428,10 @@ def main():
         print(f"[*] Uploading {len(files_to_upload)} file(s)...")
         subprocess.call(upload_cmd)
 
+        if DRY_RUN:
+            print("[DRY] Skipping indexing/restore for this group.")
+            continue
+
         print("[*] Waiting for indexing (3s)...")
         time.sleep(3)
 
