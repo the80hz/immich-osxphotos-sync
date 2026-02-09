@@ -372,8 +372,9 @@ def main():
             print("[*] Old asset hashes (for recovery lookup):")
             for f in files_to_upload:
                 checksum = sha1_b64(f)
-                if checksum in existing_assets_map:
-                    print(f"    {f} -> {checksum}")
+                asset_info = existing_assets_map.get(checksum)
+                if asset_info:
+                    print(f"    {f} -> {checksum} (old id: {asset_info['id']})")
             print(
                 f"[*] Deleting {len(unique_ids_to_delete)} old asset(s) for {group['base']}"
             )
