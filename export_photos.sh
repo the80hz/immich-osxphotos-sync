@@ -1,11 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Load selected vars from .env if present
 if [ -f ".env" ]; then
   while IFS= read -r line; do
+    if [[ -z "$line" || "$line" == \#* ]]; then
+      continue
+    fi
     case "$line" in
-      ""|#*) continue ;;
       ROOT=*|EXPORT_USE_JPEG_EXT=*|EXPORT_ALBUM=*|EXPORT_DB_PATH=*|EXPORT_REPORT_FILE=*|EXPORT_PHOTOS_LIBRARY=*)
         key=${line%%=*}
         value=${line#*=}
