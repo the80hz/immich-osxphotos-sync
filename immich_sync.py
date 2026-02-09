@@ -13,48 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import requests
-
-# ---------- .env loader (no external deps) ----------
-
-
-def _parse_env_line(line: str):
-    line = line.strip()
-    if not line or line.startswith("#"):
-        return None, None
-    if "=" not in line:
-        return None, None
-    k, v = line.split("=", 1)
-    k = k.strip()
-    v = v.strip()
-    # remove surrounding quotes if present
-    if (v.startswith('"') and v.endswith('"')) or (
-        v.startswith("'") and v.endswith("'")
-    ):
-        v = v[1:-1]
-    return k, v
-
-
-def load_dotenv(paths: List[Path]) -> Dict[str, str]:
-    env: Dict[str, str] = {}
-    for p in paths:
-        try:
-            if p and p.exists() and p.is_file():
-                for line in p.read_text(encoding="utf-8").splitlines():
-                    k, v = _parse_env_line(line)
-                    if k:
-                        env[k] = v or ""
-        except Exception:
-            # silently ignore malformed files
-            pass
-    return env
-
-
-def env_get(env_map: Dict[str, str], key: str, default: str = "") -> str:
-    val = os.environ.get(key)
-    if val is not None and val != "":
-        return val
-    val2 = env_map.get(key, default)
-    return val2 if val2 is not None else default
+from dotenv import load_dotenv
 
 
 # ====== SETTINGS (.env + environment) ======
@@ -63,16 +22,15 @@ _env_paths = [
     Path(__file__).with_suffix(".env"),
     Path(__file__).parent / ".env",
 ]
-_ENV = load_dotenv(_env_paths)
+for env_path in _env_paths:
+    load_dotenv(dotenv_path=env_path, override=False)
 
 # Environment variables take priority over .env
-IMMICH_URL = env_get(_ENV, "IMMICH_URL")  # WITHOUT trailing /api
-API_KEY = env_get(_ENV, "IMMICH_API_KEY")
-ROOT_STR = env_get(_ENV, "ROOT")
+IMMICH_URL = os.getenv("IMMICH_URL", "")  # WITHOUT trailing /api
+API_KEY = os.getenv("IMMICH_API_KEY", "")
+ROOT_STR = os.getenv("ROOT", "")
 ROOT = Path(ROOT_STR).expanduser()
-DRY_RUN = (
-    os.environ.get("DRY_RUN", _ENV.get("DRY_RUN", "0")) == "1"
-)  # DRY_RUN=1 -> show actions only
+DRY_RUN = os.getenv("DRY_RUN", "0") == "1"  # DRY_RUN=1 -> show actions only
 
 # Extensions
 PHOTO_EXT = {".heic", ".jpg", ".jpeg", ".png", ".dng", ".raf", ".cr2", ".arw"}
