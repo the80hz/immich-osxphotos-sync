@@ -369,6 +369,11 @@ def main():
 
         unique_ids_to_delete = list(set(ids_to_delete))
         if unique_ids_to_delete:
+            print("[*] Old asset hashes (for recovery lookup):")
+            for f in files_to_upload:
+                checksum = sha1_b64(f)
+                if checksum in existing_assets_map:
+                    print(f"    {f} -> {checksum}")
             print(
                 f"[*] Deleting {len(unique_ids_to_delete)} old asset(s) for {group['base']}"
             )
