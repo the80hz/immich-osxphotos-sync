@@ -1,6 +1,24 @@
 #!/usr/bin/env sh
 set -euo pipefail
 
+# Load selected vars from .env if present
+if [ -f ".env" ]; then
+  while IFS= read -r line; do
+    case "$line" in
+      ""|#*) continue ;;
+      ROOT=*|EXPORT_USE_JPEG_EXT=*|EXPORT_ALBUM=*|EXPORT_DB_PATH=*|EXPORT_REPORT_FILE=*)
+        key=${line%%=*}
+        value=${line#*=}
+        # Strip surrounding quotes if present
+        case "$value" in
+          "\""*"\""|"'"*"'") value=${value#?}; value=${value%?} ;;
+        esac
+        export "$key=$value"
+        ;;
+    esac
+  done < ".env"
+fi
+
 # === Settings (env first) ===
 BASE_DIR="${ROOT:-$HOME/Downloads/reexport}"
 
