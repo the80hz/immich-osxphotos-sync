@@ -6,7 +6,7 @@ if [ -f ".env" ]; then
   while IFS= read -r line; do
     case "$line" in
       ""|#*) continue ;;
-      ROOT=*|EXPORT_USE_JPEG_EXT=*|EXPORT_ALBUM=*|EXPORT_DB_PATH=*|EXPORT_REPORT_FILE=*)
+      ROOT=*|EXPORT_USE_JPEG_EXT=*|EXPORT_ALBUM=*|EXPORT_DB_PATH=*|EXPORT_REPORT_FILE=*|EXPORT_PHOTOS_LIBRARY=*)
         key=${line%%=*}
         value=${line#*=}
         # Strip surrounding quotes if present
@@ -26,6 +26,7 @@ USE_JPEG_EXT="${EXPORT_USE_JPEG_EXT:-0}"    # 0 = off, 1 = on
 EXPORT_ALBUM="${EXPORT_ALBUM:-reexport}"
 EXPORT_DB_PATH="${EXPORT_DB_PATH:-$HOME/osxphotos-export.db}"
 EXPORT_REPORT_FILE="${EXPORT_REPORT_FILE:-$HOME/osxphotos-export.csv}"
+EXPORT_PHOTOS_LIBRARY="${EXPORT_PHOTOS_LIBRARY:-}"
 
 # Check for osxphotos
 command -v osxphotos >/dev/null 2>&1 || {
@@ -54,6 +55,11 @@ cmd=(osxphotos export "$DEST" \
     --album "$EXPORT_ALBUM" \
     --update \
     -V)
+
+# Optionally add --library
+if [[ -n "$EXPORT_PHOTOS_LIBRARY" ]]; then
+  cmd+=(--library "$EXPORT_PHOTOS_LIBRARY")
+fi
 
 # Optionally add --jpeg-ext jpg
 if [[ "$USE_JPEG_EXT" -eq 1 ]]; then
