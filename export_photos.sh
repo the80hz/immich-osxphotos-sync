@@ -7,7 +7,7 @@ BASE_DIR="${ROOT:-$HOME/Downloads/reexport}"
 USE_JPEG_EXT="${EXPORT_USE_JPEG_EXT:-0}"    # 0 = off, 1 = on
 EXPORT_ALBUM="${EXPORT_ALBUM:-reexport}"
 EXPORT_DB_PATH="${EXPORT_DB_PATH:-$HOME/osxphotos-export.db}"
-EXPORT_REPORT_FILE="${EXPORT_REPORT_FILE:-osxphotos-export.csv}"
+EXPORT_REPORT_FILE="${EXPORT_REPORT_FILE:-$HOME/osxphotos-export.csv}"
 
 # Check for osxphotos
 command -v osxphotos >/dev/null 2>&1 || {
