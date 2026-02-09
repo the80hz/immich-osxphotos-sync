@@ -83,8 +83,9 @@ You can customize the behavior of the scripts using environment variables:
 | `EXPORT_ALBUM`        | The name of the album in Photos.app to export.                                                            | `reexport`                        |
 | `EXPORT_USE_JPEG_EXT` | Use `.jpg` extension for edited photos (1 for yes, 0 for no).                                               | `0`                               |
 | `EXPORT_DB_PATH`      | Path to the `osxphotos` export database.  Used for incremental exports.                                  | `$HOME/osxphotos-export.db`      |
-| `EXPORT_REPORT_FILE`  | Path to the `osxphotos` export report file.                                                               | `$HOME/osxphotos-export.csv`            |
-| `DRY_RUN`             | Enable dry run mode (1 for yes, 0 for no).  Shows actions without actually performing them.                 | `0`                               |
+| `EXPORT_REPORT_FILE`  | Path to the `osxphotos` export report file.                                                               | `$HOME/osxphotos-export.csv`      |
+| `EXPORT_PHOTOS_LIBRARY` | Path to a specific Photos library to use (optional).                                                   | *(unset)*                        |
+| `DRY_RUN`             | Enable dry run mode (1 for yes, 0 for no). Runs `immich upload --dry-run` and skips restore steps.         | `0`                               |
 
 **Example `.env` file:**
 
@@ -92,6 +93,8 @@ You can customize the behavior of the scripts using environment variables:
 IMMICH_URL=https://your-immich-instance.com
 IMMICH_API_KEY=YOUR_API_KEY
 ROOT=/Users/youruser/Pictures/immich_export
+EXPORT_ALBUM=reexport
+EXPORT_PHOTOS_LIBRARY=/Users/youruser/Pictures/Photos Library.photoslibrary
 ```
 
 ## ⚠️ Disclaimer
