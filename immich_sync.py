@@ -418,6 +418,24 @@ def main():
             time.sleep(2)
             empty_trash()
 
+            # "Smart" wait for hashes to clear from the DB
+            max_verify_retries = 5
+            for retry in range(max_verify_retries):
+                # Check only the files we are about to upload
+                check_items = [(str(f), sha1_b64(f)) for f in files_to_upload]
+                results = bulk_upload_check(check_items)
+
+                # If any are still marked as duplicate, wait
+                still_exists = any(r.get("action") == "reject" for r in results)
+
+                if not still_exists:
+                    break
+
+                print(
+                    f"  [!] Database index for {group['base']} not cleared yet, waiting... ({retry+1}/{max_verify_retries})"
+                )
+                time.sleep(2)
+
         # Upload
         upload_cmd = ["immich", "upload"]
         if DRY_RUN:
