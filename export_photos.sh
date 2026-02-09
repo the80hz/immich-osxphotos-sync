@@ -30,6 +30,14 @@ EXPORT_DB_PATH="${EXPORT_DB_PATH:-$HOME/osxphotos-export.db}"
 EXPORT_REPORT_FILE="${EXPORT_REPORT_FILE:-$HOME/osxphotos-export.csv}"
 EXPORT_PHOTOS_LIBRARY="${EXPORT_PHOTOS_LIBRARY:-}"
 
+# Expand leading ~ in paths from env
+BASE_DIR="${BASE_DIR/#\~/$HOME}"
+EXPORT_DB_PATH="${EXPORT_DB_PATH/#\~/$HOME}"
+EXPORT_REPORT_FILE="${EXPORT_REPORT_FILE/#\~/$HOME}"
+if [[ -n "$EXPORT_PHOTOS_LIBRARY" ]]; then
+  EXPORT_PHOTOS_LIBRARY="${EXPORT_PHOTOS_LIBRARY/#\~/$HOME}"
+fi
+
 # Check for osxphotos
 command -v osxphotos >/dev/null 2>&1 || {
   echo "osxphotos not found. Install: pipx install osxphotos (or pip install osxphotos)"
