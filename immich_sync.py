@@ -376,23 +376,31 @@ def main():
             time.sleep(2)
             empty_trash()
 
-            # "Smart" wait for hashes to clear from the DB
-            max_verify_retries = 5
-            for retry in range(max_verify_retries):
-                # Check only the files we are about to upload
-                check_items = [(str(f), sha1_b64(f)) for f in files_to_upload]
-                results = bulk_upload_check(check_items)
+            # Wait for database indexes to clear (smart verification)
+            if unique_ids_to_delete:
+                print("[*] Verifying database index cleanup...")
+                hashes_to_check = [(str(f), sha1_b64(f)) for f in files_to_upload]
 
-                # If any are still marked as duplicate, wait
-                still_exists = any(r.get("action") == "reject" for r in results)
+                cleared = False
+                for retry in range(10):  # Max 10 attempts (20s)
+                    check_results = bulk_upload_check(hashes_to_check)
+                    # If Immich no longer reports reject/duplicate for these hashes
+                    if all(res.get("action") == "accept" for res in check_results):
+                        cleared = True
+                        break
 
-                if not still_exists:
-                    break
+                    print(
+                        f"    [!] Index not cleared yet (collision risk), waiting... ({retry+1}/10)"
+                    )
+                    time.sleep(2)
 
-                print(
-                    f"  [!] Database index for {group['base']} not cleared yet, waiting... ({retry+1}/{max_verify_retries})"
-                )
-                time.sleep(2)
+                if not cleared:
+                    print(
+                        f"[ERROR] Database still sees hashes as duplicates for {group['base']}. Skipping upload to avoid crash.",
+                        file=sys.stderr,
+                    )
+                    failures += 1
+                    continue
 
         # Upload
         upload_cmd = ["immich", "upload"]
@@ -402,7 +410,15 @@ def main():
             upload_cmd.append(str(f))
 
         print(f"[*] Uploading {len(files_to_upload)} file(s)...")
-        subprocess.call(upload_cmd)
+        exit_code = subprocess.call(upload_cmd)
+
+        if exit_code != 0:
+            print(
+                f"[ERROR] immich-cli failed with code {exit_code} for {group['base']}",
+                file=sys.stderr,
+            )
+            failures += 1
+            continue
 
         if DRY_RUN:
             print("[DRY] Skipping indexing/restore for this group.")
