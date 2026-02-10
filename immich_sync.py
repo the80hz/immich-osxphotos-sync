@@ -31,6 +31,9 @@ API_KEY = os.getenv("IMMICH_API_KEY", "")
 ROOT_STR = os.getenv("ROOT", "")
 ROOT = Path(ROOT_STR).expanduser()
 DRY_RUN = os.getenv("DRY_RUN", "0") == "1"  # DRY_RUN=1 -> show actions only
+CHECKPOINT_FILE = os.getenv(
+    "CHECKPOINT_FILE", str(ROOT / ".immich_sync.checkpoint")
+)
 
 # Extensions
 PHOTO_EXT = {".heic", ".jpg", ".jpeg", ".png", ".dng", ".raf", ".cr2", ".arw"}
@@ -293,6 +296,16 @@ def main():
     if not groups:
         return
 
+    resume_index = 0
+    try:
+        checkpoint_path = Path(CHECKPOINT_FILE)
+        if checkpoint_path.exists():
+            resume_index = int(checkpoint_path.read_text(encoding="utf-8").strip() or 0)
+    except Exception:
+        resume_index = 0
+    if resume_index > 0:
+        print(f"[*] Resuming from group index {resume_index + 1}...")
+
     print("Building album asset index...")
     asset_album_index = build_album_asset_index()
     print(f"Album index built for {len(asset_album_index)} assets")
@@ -327,6 +340,8 @@ def main():
     # Atomic processing loop
     failures = 0
     for i, group in enumerate(groups):
+        if i < resume_index:
+            continue
         print(f"--- Group {i+1}/{len(groups)}: {group['base']} ---")
 
         files_to_upload: List[Path] = []
@@ -507,6 +522,12 @@ def main():
                 add_to_albums([alb_id], list(set(asset_ids)))
         elif ids_to_delete:
             print("[DEBUG] No albums to restore from snapshot.")
+
+        if not DRY_RUN:
+            try:
+                Path(CHECKPOINT_FILE).write_text(str(i + 1), encoding="utf-8")
+            except Exception:
+                pass
 
     if failures > 0:
         print(f"Done with {failures} errors.", file=sys.stderr)
